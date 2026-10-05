@@ -1,0 +1,9 @@
+{
+  "id": "canvas-node-below",
+  "name": "Canvas Add Node Below",
+  "version": "1.0.0",
+  "minAppVersion": "1.1.0",
+  "description": "Rapidly append and focus cards downward in Obsidian Canvas using a hotkey.",
+  "author": "Obsidian User",
+  "isDesktopOnly": false
+}
