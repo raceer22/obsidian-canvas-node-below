@@ -27,7 +27,7 @@ A lightweight, zero-build Obsidian community plugin (`canvas-node-below`) enabli
 
 1. **Trigger from Active Editor**: When editing markdown inside a canvas node, triggering the shortcut commits/exits the current editor session, creates a new note directly below, clears previous selections, and initiates edit mode in the newly created card.
 2. **Trigger from Node Selection**: If a node is selected (but not actively in edit mode), the plugin appends the new node below it and immediately focuses the new card's editor.
-3. **Trigger on Blank / Root Canvas**: If no node is focused or selected, the initial node spawns at the viewport center coordinates and opens for editing immediately.
+3. **Trigger on Blank / Root Canvas**: If no node is focused or selected, the new node spawns at the viewport center and opens for editing immediately. If that placement would overlap an existing node, it is instead placed below the lowest overlapping node.
 
 ---
 
@@ -40,7 +40,7 @@ A lightweight, zero-build Obsidian community plugin (`canvas-node-below`) enabli
 $$Y_{new} = Y_{current} + \text{height}_{current} + \text{padding}$$
 
 
-* **Collision Policy**: Pure append (no downstream reflow/push-down). Nodes are dropped directly at the calculated coordinate regardless of existing elements.
+* **Collision Policy**: Selected-node placement remains a pure append with no downstream reflow. For an unselected canvas, if the centered node would overlap an existing node, use the lowest overlapping node as the anchor and place the new node directly below it using the configured padding.
 * **Initial Node Content**: Blank (`""`).
 * **Camera Adjustment**: Auto-pan/focus to the newly created node using Canvas's native pan framing to prevent off-screen cursor drops during rapid creation runs.
 
@@ -145,3 +145,4 @@ module.exports = class CanvasAddNodeBelowPlugin extends Plugin {
 3. **Viewport Auto-Scroll Test**: Continue typing cards past the bottom screen edge; verify the canvas automatically frames the active node.
 4. **Safety Check**: Navigate to a standard `.md` note and press `Mod-Enter`; verify the shortcut does not interfere with standard markdown editing behavior.
 5. **Settings Test**: Change padding, width, and height in the plugin settings. Verify new nodes use those values and the values remain after reloading Obsidian.
+6. **Centered Collision Test**: With no node selected, place an existing node under the viewport center and press `Mod-Enter`. Verify the new node is placed below the existing node with the configured padding instead of covering it.

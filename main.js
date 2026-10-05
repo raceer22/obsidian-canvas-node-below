@@ -50,13 +50,34 @@ module.exports = class CanvasAddNodeBelowPlugin extends Plugin {
 
     let x, y;
     const { padding, width, height } = this.settings;
+    let centered = false;
 
     if (activeNode) {
       x = activeNode.x;
       y = activeNode.y + (activeNode.height || height || 200) + padding;
     } else {
-      // Let Canvas center the node using its native default dimensions.
-      ({ x, y } = canvas.posCenter());
+      const center = canvas.posCenter();
+      const estimatedWidth = width || 400;
+      const estimatedHeight = height || 200;
+      const left = center.x - estimatedWidth / 2;
+      const top = center.y - estimatedHeight / 2;
+      const overlappingNode = Array.from(canvas.nodes.values())
+        .filter((node) =>
+          left < node.x + node.width &&
+          left + estimatedWidth > node.x &&
+          top < node.y + node.height &&
+          top + estimatedHeight > node.y
+        )
+        .sort((a, b) => (b.y + b.height) - (a.y + a.height))[0];
+
+      if (overlappingNode) {
+        activeNode = overlappingNode;
+        x = activeNode.x;
+        y = activeNode.y + activeNode.height + padding;
+      } else {
+        ({ x, y } = center);
+        centered = true;
+      }
     }
 
     const size = {
@@ -65,7 +86,7 @@ module.exports = class CanvasAddNodeBelowPlugin extends Plugin {
     };
     const newNode = canvas.createTextNode({
       pos: { x, y },
-      ...(!activeNode ? { position: "center" } : {}),
+      ...(centered ? { position: "center" } : {}),
       ...(Object.keys(size).length > 0 ? { size } : {}),
       text: "",
       save: true
