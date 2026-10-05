@@ -33,11 +33,11 @@ A lightweight, zero-build Obsidian community plugin (`canvas-node-below`) enabli
 
 ## 4. Geometric & Layout Specifications
 
-* **Node Dimensions**: Standard canvas card dimensions (`400px` width $\times$ `200px` height).
+* **Default Node Dimensions**: Use Canvas's native default width and height unless overridden in plugin settings.
 * **Horizontal Alignment**: Left edges align precisely ($X_{new} = X_{current}$).
-* **Vertical Positioning**: Placed with a standard $40\text{px}$ gap directly beneath the current card's lower boundary:
+* **Vertical Positioning**: Placed with a default $40\text{px}$ gap (configurable as vertical padding) directly beneath the current card's lower boundary:
 
-$$Y_{new} = Y_{current} + \text{height}_{current} + 40$$
+$$Y_{new} = Y_{current} + \text{height}_{current} + \text{padding}$$
 
 
 * **Collision Policy**: Pure append (no downstream reflow/push-down). Nodes are dropped directly at the calculated coordinate regardless of existing elements.
@@ -54,8 +54,11 @@ $$Y_{new} = Y_{current} + \text{height}_{current} + 40$$
 <Vault>/.obsidian/plugins/canvas-node-below/
 ├── manifest.json
 └── main.js
-
 ```
+
+### Plugin Settings
+
+The plugin settings tab exposes numeric controls for vertical padding (default `40px`), default node width (default `0`), and default node height (default `0`). Changes are persisted across reloads. Padding may be zero; width and height may be zero, which leaves that dimension to Canvas's native default sizing.
 
 ### `manifest.json`
 
@@ -96,9 +99,7 @@ module.exports = class CanvasAddNodeBelowPlugin extends Plugin {
   }
 
   spawnNodeBelow(canvas) {
-    const DEFAULT_WIDTH = 400;
-    const DEFAULT_HEIGHT = 200;
-    const GAP = 40;
+    const { width, height, padding } = this.settings;
 
     // Detect active or focused node
     let activeNode = null;
@@ -106,12 +107,11 @@ module.exports = class CanvasAddNodeBelowPlugin extends Plugin {
       activeNode = Array.from(canvas.selection)[0];
     }
 
-    let x, y, width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT;
+    let x, y;
 
     if (activeNode) {
       x = activeNode.x;
-      y = activeNode.y + (activeNode.height || DEFAULT_HEIGHT) + GAP;
-      width = activeNode.width || DEFAULT_WIDTH;
+      y = activeNode.y + (activeNode.height || height) + padding;
     } else {
       // Spawn at viewport center if no node is active
       const viewPos = canvas.getViewportBounds();
@@ -140,7 +140,8 @@ module.exports = class CanvasAddNodeBelowPlugin extends Plugin {
 
 ## 6. Verification & Test Checklist
 
-1. **Empty Canvas Test**: Open a brand-new canvas, press `Mod-Enter`. Verify a `400x200` node appears at the viewport center and the blinking cursor is immediately active.
-2. **Sequential Chaining Test**: Type text, press `Mod-Enter` consecutively 5 times. Verify a uniform vertical column forms with $40\text{px}$ gaps, left edges aligned, without losing typing focus.
+1. **Empty Canvas Test**: Open a brand-new canvas, press `Mod-Enter`. Verify a node using Canvas defaults for dimensions set to `0` appears at the viewport center and the blinking cursor is immediately active.
+2. **Sequential Chaining Test**: Type text, press `Mod-Enter` consecutively 5 times. Verify a uniform vertical column forms with the configured padding, left edges aligned, without losing typing focus.
 3. **Viewport Auto-Scroll Test**: Continue typing cards past the bottom screen edge; verify the canvas automatically frames the active node.
 4. **Safety Check**: Navigate to a standard `.md` note and press `Mod-Enter`; verify the shortcut does not interfere with standard markdown editing behavior.
+5. **Settings Test**: Change padding, width, and height in the plugin settings. Verify new nodes use those values and the values remain after reloading Obsidian.
