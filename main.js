@@ -55,10 +55,8 @@ module.exports = class CanvasAddNodeBelowPlugin extends Plugin {
       x = activeNode.x;
       y = activeNode.y + (activeNode.height || height || 200) + padding;
     } else {
-      // Spawn at viewport center if no node is active
-      const viewPos = canvas.getViewportBounds();
-      x = (viewPos.minX + viewPos.maxX) / 2 - (width || 400) / 2;
-      y = (viewPos.minY + viewPos.maxY) / 2 - (height || 200) / 2;
+      // Let Canvas center the node using its native default dimensions.
+      ({ x, y } = canvas.posCenter());
     }
 
     const size = {
@@ -67,6 +65,7 @@ module.exports = class CanvasAddNodeBelowPlugin extends Plugin {
     };
     const newNode = canvas.createTextNode({
       pos: { x, y },
+      ...(!activeNode ? { position: "center" } : {}),
       ...(Object.keys(size).length > 0 ? { size } : {}),
       text: "",
       save: true
